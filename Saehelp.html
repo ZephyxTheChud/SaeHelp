@@ -31,7 +31,7 @@ input:focus,select:focus{border-color:var(--ac);box-shadow:0 0 0 3px #ff4f9a30}
 .chip .ic{font-size:24px;filter:drop-shadow(0 0 6px var(--c))}
 .chip small{position:absolute;right:8px;bottom:6px;background:#000a;border-radius:99px;padding:1px 8px;font-size:11px;color:#fff}
 .chip:active{transform:scale(.96)}
-.chip.on{background:linear-gradient(135deg,var(--c),color-mix(in srgb,var(--c) 55%,#fff));border-color:transparent;color:#1a0f1f;box-shadow:0 0 22px color-mix(in srgb,var(--c) 70%,transparent)}
+.chip.on{background:var(--c);box-shadow:0 0 18px var(--c);background:linear-gradient(135deg,var(--c),color-mix(in srgb,var(--c) 55%,#fff));border-color:transparent;color:#1a0f1f;box-shadow:0 0 22px color-mix(in srgb,var(--c) 70%,transparent)}
 #vars .chip{flex-direction:column;justify-content:center;padding:12px 4px 12px;text-align:center;gap:4px;font-size:12px;min-height:76px}
 #vars .chip small{position:static;background:#0006}
 .res{position:relative;text-align:center;padding:22px 16px;margin:6px 0 16px;border-radius:26px;background:linear-gradient(180deg,#2b1536,#1b1024);border:1.5px solid transparent;background-clip:padding-box;box-shadow:0 0 0 1.5px #ff4f9a88,0 0 40px #ff4f9a30}
@@ -134,6 +134,7 @@ const DONATE=[["5 R$","Tiny tip","#"],["10 R$","Coffee tip","#"],["50 R$","Suppo
 const VARIANTS=[["None",1,"#9a8aa6","⚪"],["Silver",1.2,"#b6bcc9","🥈"],["Golden",2.5,"#ffc83a","🥇"],["Rainbow",3.5,"#ff4f9a","🌈"]];
 const MUTS=[["Silver",1.2,"#b6bcc9","🪨"],["Bloom",1.25,"#ff8fb8","🌸"],["Spirit Bloom",2.5,"#ff6fd0","🌺"],["Golden",2.5,"#ffc83a","✨"],["Fractured",2.75,"#a24bff","💥"],["Scrambled",2.75,"#7ddc5a","☣️"],["Nitro",2.75,"#ff8a2a","🔥"],["Enchanted Essence",2.85,"#8fe3c8","🌿"],["Parasite",3,"#8b6cff","🪱"],["Rainbow",3.5,"#ff4f9a","🌈"]];
 const $=id=>document.getElementById(id);
+const setKids=(el,k)=>{el.innerHTML="";k.forEach(n=>el.appendChild(n))};
 const P=s=>{s=String(s).trim().toLowerCase().replace(/[,\s$]/g,"");const m={k:1e3,m:1e6,b:1e9,t:1e12};const u=m[s.slice(-1)];return u?(parseFloat(s)||0)*u:(parseFloat(s)||0)};
 function F(n){const u=[[1e15,"Qa"],[1e12,"T"],[1e9,"B"],[1e6,"M"],[1e3,"K"]];for(const[v,s]of u)if(n>=v)return(n/v).toFixed(2).replace(/\.?0+$/,"")+s;return Math.round(n).toLocaleString()}
 function dur(s){s=Math.max(0,Math.round(s));const d=Math.floor(s/86400),h=Math.floor(s%86400/3600),m=Math.floor(s%3600/60),x=s%60;return[d&&d+"d",(d||h)&&h+"h",(d||h||m)&&m+"m",x+"s"].filter(Boolean).join(" ")}
@@ -352,7 +353,7 @@ const badge=r=>`<span class="rb" style="background:${RAR[r][1]}">${RAR[r][0]}</s
 function setPet(p){pet=p;$("vName").value=p.n;$("vB").value=F(p.i);$("vRef").value=p.w?p.w.toLocaleString("en-US"):"";$("petBtn").innerHTML=`<span><b>${p.n}</b><small>Base $${F(p.i)}/s${p.e?" (est)":""} · ${p.w?p.w.toLocaleString("en-US")+"kg base":"base weight unknown"}</small></span>${badge(p.r)}`;render()}
 function listPets(){const q=$("pq").value.trim().toLowerCase();const arr=PETS.filter(p=>!q||p.n.toLowerCase().includes(q)||RAR[p.r][0].toLowerCase().includes(q));
   $("petCount").textContent=arr.length+" of "+PETS.length+" pets · base income at 1x size";
-  $("pl").replaceChildren(...arr.map(p=>{const d=document.createElement("div");d.className="prow";d.innerHTML=`<span>${p.n} ${badge(p.r)}</span><span>$${F(p.i)}/s</span>`;d.onclick=()=>{setPet(p);$("petMod").classList.remove("o")};return d}))}
+  setKids($("pl"),arr.map(p=>{const d=document.createElement("div");d.className="prow";d.innerHTML=`<span>${p.n} ${badge(p.r)}</span><span>$${F(p.i)}/s</span>`;d.onclick=()=>{setPet(p);$("petMod").classList.remove("o")};return d}))}
 $("petBtn").onclick=()=>{$("pq").value="";listPets();$("petMod").classList.add("o")};
 $("pq").addEventListener("input",listPets);
 $("closePet").onclick=()=>$("petMod").classList.remove("o");
@@ -366,4 +367,57 @@ const chip=(n,m,on,fn,c,e)=>{const b=document.createElement("button");b.classNam
 function wmult(r){if(r<=0)return 1;if(r<=0.5)return Math.pow(r,5/3);if(r<=125)return Math.pow(r,37/60);return Math.pow(125,37/60)*Math.pow(r/125,0.4)}
 function income(){const w=P($("vW").value),b=P($("vB").value),ref=P($("vRef").value);let add=1;mSel.forEach(i=>add+=MUTS[i][1]-1);const ratio=ref>0?w/ref:0,wm=ref>0?wmult(ratio):1;return{w,add,wm,ref,warn:ref>0&&ratio>0.5&&ratio<0.9,inc:b*wm*add*(x2?2:1)}}
 function render(){
-  $("muts").replaceChildren(...MUTS.map((m,i)=>chip(m[0]
+  setKids($("muts"),MUTS.map((m,i)=>chip(m[0],m[1],mSel.has(i),()=>{mSel.has(i)?mSel.delete(i):mSel.add(i);render()},m[2],m[3])));
+  const r=income(),names=[...(vSel?[VARIANTS[vSel][0]]:[]),...[...mSel].sort((a,b)=>a-b).map(i=>MUTS[i][0])];
+  $("rName").textContent=pet?[pet.n,...names].join(" + "):"Select a pet";
+  $("rInc").textContent="~$"+F(r.inc)+"/s";
+  $("rDet").textContent=!pet?"Pick a pet and enter its weight":`${r.w.toLocaleString()}kg · ${r.wm.toFixed(2)}x weight · ${r.add.toFixed(2)}x mutations${x2?" · 2X money":""}${r.warn?" · ⚠ 0.5–0.9x base not fully tested":""}${!r.ref?" · base weight unknown, weight ignored":""}`;
+  $("x2").classList.toggle("on",x2);
+  $("tc").textContent=`(${team.length}/8)`;
+  $("teamList").innerHTML=team.length?"":'<div class="sub">No pets yet.</div>';
+  team.forEach((t,i)=>{const d=document.createElement("div");d.className="row";d.innerHTML=`<span>${t.n}</span><span><b>$${F(t.v)}/s</b> </span>`;const x=document.createElement("button");x.textContent="✕";x.onclick=()=>{team.splice(i,1);render()};d.lastChild.appendChild(x);$("teamList").appendChild(d)});
+  $("teamTot").textContent="$"+F(team.reduce((s,t)=>s+t.v,0))+"/s";
+}
+$("vW").addEventListener("input",e=>{const r=e.target.value.replace(/[^0-9.]/g,"");const[a,b]=r.split(".");e.target.value=(a?Number(a).toLocaleString("en-US"):"")+(b!==undefined?"."+b:"");render()});
+["vName","vB","vRef"].forEach(i=>$(i).addEventListener("input",render));
+$("x2").onclick=()=>{x2=!x2;render()};
+$("clr").onclick=()=>{mSel.clear();vSel=0;render()};
+$("addT").onclick=()=>{if(!pet||team.length>=8)return;team.push({n:$("rName").textContent,v:income().inc});render()};
+// hatch (growth-seconds model)
+let hx=false;
+function growthOn(S,p){const c=Math.floor(S/290),r=S%290;return p*(c*580+Math.min(r,10)*30+Math.max(r-10,0))}
+function invert(need,p){const c=Math.floor(need/(580*p));let rem=need-c*580*p,t=c*290;t+=rem<=300*p?rem/(30*p):10+(rem-300*p)/p;return t}
+function hatch(){
+  const need=P($("hd").value)*86400+P($("hh").value)*3600+P($("hm").value)*60+P($("hs").value),S=P($("hOn").value)*60,p=hx?2:1;
+  const g=growthOn(S,p);const real=need<=g?invert(need,p):S+(need-g)/p;
+  const base=need/p;
+  $("hReal").textContent=need?dur(real):"—";
+  $("hDet").textContent=need?`Ready ~${new Date(Date.now()+real*1000).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})} · saves ${dur(Math.max(0,base-real))} vs no boosts · ${(need/real).toFixed(2)}x effective`:"";
+  $("hx2").classList.toggle("on",hx);
+}
+["hd","hh","hm","hs","hOn"].forEach(i=>$(i).addEventListener("input",hatch));
+$("hx2").onclick=()=>{hx=!hx;hatch()};
+// fuse
+const fi=$("fuseIn");
+for(let i=1;i<=3;i++)fi.insertAdjacentHTML("beforeend",`<div class="r2"><div><label>Pet ${i} $/s</label><input class="fi" inputmode="decimal" placeholder="e.g. 2.5b"></div><div><label>Mutations</label><select class="fm"><option>0</option><option>1</option><option>2+</option></select></div></div>`);
+function fuse(){
+  const inc=[...document.querySelectorAll(".fi")].map(e=>P(e.value)),mu=[...document.querySelectorAll(".fm")].map(e=>e.selectedIndex);
+  const sum=inc.reduce((a,b)=>a+b,0),s=[1,2,3][Math.max(...mu)];
+  $("fTot").textContent="$"+F(sum*180*s);
+  $("fDet").textContent=`$${F(sum)}/s × 180s × ${s}x surcharge`;
+}
+fi.addEventListener("input",fuse);fi.addEventListener("change",fuse);
+// events
+const nextMark=(marks)=>{const n=new Date(),m=n.getMinutes()*60+n.getSeconds();let best=1e9;marks.forEach(k=>{let d=k*60-m;if(d<=0)d+=3600;best=Math.min(best,d)});return best};
+function tick(){const n=new Date();$("utc").textContent=n.toUTCString().slice(17,25)+" UTC";
+  $("e1").textContent=dur(nextMark([15,45]));$("e2").textContent=dur(nextMark([0,30]));$("e3").textContent=dur(nextMark([0]))}
+setInterval(tick,1000);tick();
+// donate
+DONATE.forEach(d=>{const a=document.createElement("a");a.className="tier";a.href=d[2];a.target="_blank";a.rel="noopener";a.innerHTML=`<span>${d[1]}${d[3]?`<em>${d[3]}</em>`:""}</span><span>${d[0]}</span>`;$("tiers").appendChild(a)});
+$("donBtn").onclick=()=>$("mod").classList.add("o");
+$("closeMod").onclick=()=>$("mod").classList.remove("o");
+$("mod").onclick=e=>{if(e.target.id==="mod")$("mod").classList.remove("o")};
+$("petBtn").innerHTML='<span><b>Select a pet</b><small>Tap to browse all pets</small></span>';render();hatch();fuse();
+</script>
+</body>
+</html>
