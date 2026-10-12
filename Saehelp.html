@@ -62,6 +62,10 @@ input:focus,select:focus{border-color:var(--ac);box-shadow:0 0 0 3px #ff4f9a30}
 .prow:active{background:#ffffff14}.prow>span:first-child{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .prow>span:last-child{color:#ffd36b;white-space:nowrap}
 .pl{max-height:58vh;overflow:auto;margin-top:10px}
+
+.ptabs{display:flex;gap:6px;overflow-x:auto;padding:2px 0 12px;scrollbar-width:none}.ptabs::-webkit-scrollbar{display:none}
+.ptab{flex:none;border:1.5px solid var(--bd);background:#150d1c;color:var(--mu);border-radius:999px;padding:8px 13px;font-weight:900;font-size:13px;font-family:inherit;cursor:pointer;white-space:nowrap}
+.ptab.on{background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff;border-color:transparent}
 </style>
 </head>
 <body>
@@ -124,6 +128,7 @@ input:focus,select:focus{border-color:var(--ac);box-shadow:0 0 0 3px #ff4f9a30}
 
 <div class="mod" id="petMod"><div class="sheet">
   <h2>Choose a pet</h2><p class="sub" id="petCount"></p>
+  <div class="ptabs" id="ptabs"></div>
   <input id="pq" placeholder="Search name or rarity (e.g. divine)" style="font-size:16px">
   <div class="pl" id="pl"></div>
   <button class="lnk" id="closePet" style="margin-top:10px;width:100%">Close</button>
@@ -351,10 +356,17 @@ Archdemon Dragon|D|1.25b|120000|`.split("\n").map(l=>{const[n,r,i,w,e]=l.split("
 let pet=null;
 const badge=r=>`<span class="rb" style="background:${RAR[r][1]}">${RAR[r][0]}</span>`;
 function setPet(p){pet=p;$("vName").value=p.n;$("vB").value=F(p.i);$("vRef").value=p.w?p.w.toLocaleString("en-US"):"";$("petBtn").innerHTML=`<span><b>${p.n}</b><small>Base $${F(p.i)}/s${p.e?" (est)":""} · ${p.w?p.w.toLocaleString("en-US")+"kg base":"base weight unknown"}</small></span>${badge(p.r)}`;render()}
-function listPets(){const q=$("pq").value.trim().toLowerCase();const arr=PETS.filter(p=>!q||p.n.toLowerCase().includes(q)||RAR[p.r][0].toLowerCase().includes(q));
+function listPets(){const q=$("pq").value.trim().toLowerCase();const arr=PETS.filter(p=>inTab(p)&&(!q||p.n.toLowerCase().includes(q)||RAR[p.r][0].toLowerCase().includes(q)));
   $("petCount").textContent=arr.length+" of "+PETS.length+" pets · base income at 1x size";
   setKids($("pl"),arr.map(p=>{const d=document.createElement("div");d.className="prow";d.innerHTML=`<span>${p.n} ${badge(p.r)}</span><span>$${F(p.i)}/s</span>`;d.onclick=()=>{setPet(p);$("petMod").classList.remove("o")};return d}))}
-$("petBtn").onclick=()=>{$("pq").value="";listPets();$("petMod").classList.add("o")};
+const BIOMES=[["Forest", ["Chicken", "Dog", "Bird", "Burrowing Owl", "Raccoon", "Fox", "Bear", "Brr Brr Patapim"]], ["Lake", ["Frog", "Duckling", "Catfish", "Turtle", "Trulimero Trulicina", "Swan", "Axolotl", "Leviathan"]], ["Desert", ["Jerboa", "Fennec", "Camel", "Tob Tobi Tob Tob", "Snake", "Sand Spider", "Scorpion", "Royal Sphinx"]], ["Jungle", ["Chimpanzee", "Toucan", "Crocodile", "Gorilla", "Orangutini Ananassini", "Spider", "Tiger", "King Snake"]], ["Snow", ["Penguin", "Walrus", "Polar Bear", "Sabertooth Tiger", "Mammoth", "King Mammoth", "Yeti", "Ice Dragon"]], ["Volcano", ["Lava Gecko", "Lava Frog", "Flaming Bull", "Lava Iguana", "Chillin Chilli", "Cerberus", "Phoenix", "Lava Dragon"]], ["Abyss Ocean", ["Parrotfish", "Swordfish", "Shark", "Orca", "Whale Shark", "Beluga Whale", "Kraken", "El Maja"]], ["Prehistoric", ["Dodo", "Pterodactyl", "Anky
+const BSET={};BIOMES.forEach(([k,v])=>BSET[k]=new Set(v));const INBIOME=new Set(BIOMES.flatMap(b=>b[1]));
+let ptab="ALL";
+const inTab=p=>ptab==="ALL"||(ptab==="Event Eggs"?!INBIOME.has(p.n):BSET[ptab].has(p.n));
+function buildTabs(){const t=[...BIOMES.map(b=>b[0]),"Event Eggs","ALL"];
+  const cnt=k=>k==="ALL"?PETS.length:k==="Event Eggs"?PETS.filter(p=>!INBIOME.has(p.n)).length:BSET[k].size;
+  $("ptabs").innerHTML="";t.forEach(k=>{const b=document.createElement("button");b.className="ptab"+(k===ptab?" on":"");b.textContent=k+" "+cnt(k);b.onclick=()=>{ptab=k;buildTabs();listPets()};$("ptabs").appendChild(b)})}
+$("petBtn").onclick=()=>{$("pq").value="";buildTabs();listPets();$("petMod").classList.add("o")};
 $("pq").addEventListener("input",listPets);
 $("closePet").onclick=()=>$("petMod").classList.remove("o");
 $("petMod").onclick=e=>{if(e.target.id==="petMod")$("petMod").classList.remove("o")};
