@@ -256,7 +256,7 @@ Spirit Panda|X|35m||e
 Starry Fox|S|750m|1500|e
 Celestial Sunlion|T|2b|17000|e
 Royal Skywhale|D|8b|190000|
-Spirit World Guardian|D|26b|40000
+Spirit World Guardian|D|15b|40000|
 Toxic Rat|M|180k|8|
 Wheel Hamster|M|450k|4|
 Frogfly|M|1.25m|25|
@@ -362,13 +362,13 @@ $("petMod").onclick=e=>{if(e.target.id==="petMod")$("petMod").classList.remove("
 const TABS=[["values","💰 Values"],["hatch","⏱ Hatch"],["fuse","🔥 Fuse"],["events","📅 Events"]];
 TABS.forEach(([id,l],i)=>{const b=document.createElement("button");b.textContent=l;if(!i)b.className="a";b.onclick=()=>{[...$("nav").children].forEach(c=>c.className="");b.className="a";document.querySelectorAll(".pane").forEach(p=>p.classList.toggle("a",p.id==="p-"+id))};$("nav").appendChild(b)});
 // values
-let vSel=1,mSel=new Set(),x2=false,team=[];
+let mSel=new Set(),x2=false,team=[];
 const chip=(n,m,on,fn,c,e)=>{const b=document.createElement("button");b.className="chip"+(on?" on":"");b.style.setProperty("--c",c);b.innerHTML=`<span class="ic">${e}</span><span>${n}</span><small>${m}x</small>`;b.onclick=fn;return b};
 function wmult(r){if(r<=0)return 1;if(r<=0.5)return Math.pow(r,5/3);if(r<=125)return Math.pow(r,37/60);return Math.pow(125,37/60)*Math.pow(r/125,0.4)}
 function income(){const w=P($("vW").value),b=P($("vB").value),ref=P($("vRef").value);let add=1;mSel.forEach(i=>add+=MUTS[i][1]-1);const ratio=ref>0?w/ref:0,wm=ref>0?wmult(ratio):1;return{w,add,wm,ref,warn:ref>0&&ratio>0.5&&ratio<0.9,inc:b*wm*add*(x2?2:1)}}
 function render(){
   setKids($("muts"),MUTS.map((m,i)=>chip(m[0],m[1],mSel.has(i),()=>{mSel.has(i)?mSel.delete(i):mSel.add(i);render()},m[2],m[3])));
-  const r=income(),names=[...(vSel?[VARIANTS[vSel][0]]:[]),...[...mSel].sort((a,b)=>a-b).map(i=>MUTS[i][0])];
+  const r=income(),names=[...[...mSel].sort((a,b)=>a-b).map(i=>MUTS[i][0])];
   $("rName").textContent=pet?[pet.n,...names].join(" + "):"Select a pet";
   $("rInc").textContent="~$"+F(r.inc)+"/s";
   $("rDet").textContent=!pet?"Pick a pet and enter its weight":`${r.w.toLocaleString()}kg · ${r.wm.toFixed(2)}x weight · ${r.add.toFixed(2)}x mutations${x2?" · 2X money":""}${r.warn?" · ⚠ 0.5–0.9x base not fully tested":""}${!r.ref?" · base weight unknown, weight ignored":""}`;
@@ -381,7 +381,7 @@ function render(){
 $("vW").addEventListener("input",e=>{const r=e.target.value.replace(/[^0-9.]/g,"");const[a,b]=r.split(".");e.target.value=(a?Number(a).toLocaleString("en-US"):"")+(b!==undefined?"."+b:"");render()});
 ["vName","vB","vRef"].forEach(i=>$(i).addEventListener("input",render));
 $("x2").onclick=()=>{x2=!x2;render()};
-$("clr").onclick=()=>{mSel.clear();vSel=0;render()};
+$("clr").onclick=()=>{mSel.clear();render()};
 $("addT").onclick=()=>{if(!pet||team.length>=8)return;team.push({n:$("rName").textContent,v:income().inc});render()};
 // hatch (growth-seconds model)
 let hx=false;
